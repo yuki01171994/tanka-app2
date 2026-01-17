@@ -1,0 +1,431 @@
+/* Base styles */
+body {
+  margin: 0;
+  font-family: "Noto Serif JP", "Sawarabi Mincho", serif;
+  color: #333;
+  background-color: #faf6f0;
+  background-image: url('background.png');
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+header {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #e0dcd2;
+}
+header h1 {
+  margin: 0.2rem;
+  font-size: 1.5rem;
+}
+nav {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.nav-btn {
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  border-bottom: 2px solid transparent;
+}
+.nav-btn.active {
+  border-bottom: 2px solid #91785d;
+}
+
+main {
+  padding: 1rem;
+}
+
+.section {
+  display: none;
+  padding-bottom: 2rem;
+}
+.active-section {
+  display: block;
+}
+
+/* Input form */
+#tanka-form {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+.line-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.line-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.line-group label {
+  width: 3rem;
+}
+.tanka-line {
+  flex: 1;
+  resize: none;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.char-count {
+  width: 2rem;
+  text-align: right;
+  font-size: 0.9rem;
+  color: #666;
+}
+.field {
+  margin-top: 0.7rem;
+  display: flex;
+  flex-direction: column;
+}
+.field label {
+  margin-bottom: 0.3rem;
+}
+.field input, .field textarea, .field select {
+  padding: 0.5rem;
+  border: 1px solid #d8d0c5;
+  border-radius: 4px;
+  font-family: inherit;
+}
+.buttons {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  background-color: #91785d;
+  color: #fff;
+}
+.buttons button#reset-form {
+  background-color: #b0a38f;
+}
+
+#new-series-form {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+#new-series-form input {
+  flex: 1;
+}
+#new-series-form button {
+  padding: 0.3rem 0.6rem;
+  background-color: #6d5944;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* List section */
+#list-section {
+  max-width: 100%;
+}
+.search-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.search-filter input, .search-filter select, .search-filter button, .search-filter label {
+  padding: 0.4rem;
+  border: 1px solid #d8d0c5;
+  border-radius: 4px;
+  font-family: inherit;
+}
+.search-filter button {
+  background-color: #91785d;
+  color: #fff;
+  cursor: pointer;
+}
+#import-file {
+  display: none;
+}
+#import-label {
+  background-color: #6d5944;
+  color: #fff;
+  padding: 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#tanka-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+#tanka-table th, #tanka-table td {
+  border: 1px solid #d8d0c5;
+  padding: 0.4rem;
+  text-align: left;
+  font-size: 0.9rem;
+}
+#tanka-table th {
+  background-color: #ede5d9;
+}
+#tanka-table tr:hover {
+  background-color: #f5f0e9;
+  cursor: pointer;
+}
+
+/* Card view */
+#card-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+}
+
+.card {
+  flex: 0 0 auto;
+  min-width: 200px;
+  max-width: 200px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 0.6rem;
+  border: 1px solid #d8d0c5;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+.card h4 {
+  margin: 0;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card .date {
+  font-size: 0.8rem;
+  color: #91785d;
+  margin-top: 0.2rem;
+}
+.card .tags {
+  font-size: 0.7rem;
+  color: #91785d;
+  margin-top: 0.2rem;
+}
+
+/* Deck builder modal */
+#deck-builder {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+#deck-builder .deck-content {
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 80%;
+  max-width: 600px;
+}
+#deck-entry-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.deck-card {
+  width: 120px;
+  height: 160px;
+  border: 1px solid #d8d0c5;
+  border-radius: 6px;
+  padding: 0.5rem;
+  background-color: #faf6f0;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.deck-card.selected {
+  border-color: #91785d;
+  background-color: #ede5d9;
+}
+.deck-card .title {
+  font-size: 0.8rem;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.deck-card .date {
+  font-size: 0.7rem;
+  color: #91785d;
+}
+.deck-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.deck-buttons button {
+  padding: 0.4rem 0.8rem;
+  background-color: #91785d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.deck-buttons button#deck-cancel-btn {
+  background-color: #b0a38f;
+}
+
+/* Calendar */
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.3rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0.5rem;
+  border-radius: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+#calendar .day {
+  min-height: 60px;
+  border: 1px solid #d8d0c5;
+  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  cursor: pointer;
+  position: relative;
+}
+#calendar .day-number {
+  font-weight: bold;
+  margin-bottom: 0.2rem;
+}
+#calendar .count {
+  font-size: 0.7rem;
+  color: #91785d;
+}
+
+/* Series section */
+#series-list {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.series-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0.7rem;
+  border-radius: 6px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.series-item .progress {
+  font-size: 0.9rem;
+  color: #91785d;
+}
+
+/* Deck edit button in series */
+.deck-edit-btn {
+  padding: 0.3rem 0.6rem;
+  margin-left: 0.5rem;
+  background-color: #6d5944;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.deck-edit-btn:hover {
+  background-color: #91785d;
+}
+
+/* Preview section */
+#preview-container {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-x: auto;
+}
+#preview-area {
+  min-height: 300px;
+  min-width: 200px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  border: 1px solid #d8d0c5;
+  background-size: cover;
+}
+#preview-area.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  line-height: 2rem;
+  font-size: 1.2rem;
+}
+.preview-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.preview-controls label, .preview-controls button {
+  font-size: 0.9rem;
+}
+.preview-controls select, .preview-controls input[type="color"] {
+  padding: 0.3rem;
+  border: 1px solid #d8d0c5;
+  border-radius: 4px;
+}
+.preview-controls button {
+  padding: 0.4rem 0.6rem;
+  background-color: #91785d;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #91785d;
+}

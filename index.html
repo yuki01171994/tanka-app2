@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>短歌帳アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Fonts for Japanese typography -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>短歌帳アプリ</h1>
+    <nav>
+      <button id="nav-input" class="nav-btn active">入力</button>
+      <button id="nav-list" class="nav-btn">一覧</button>
+      <button id="nav-calendar" class="nav-btn">カレンダー</button>
+      <button id="nav-series" class="nav-btn">連作</button>
+      <button id="nav-preview" class="nav-btn">プレビュー</button>
+    </nav>
+  </header>
+  <main>
+    <!-- Input section -->
+    <section id="input-section" class="section active-section">
+      <h2>作品入力</h2>
+      <form id="tanka-form">
+        <div class="line-inputs">
+          <!-- Five lines for 5-7-5-7-7 structure -->
+          <div class="line-group" data-line="1">
+            <label>1行目</label>
+            <textarea class="tanka-line" rows="1"></textarea>
+            <span class="char-count">0</span>
+          </div>
+          <div class="line-group" data-line="2">
+            <label>2行目</label>
+            <textarea class="tanka-line" rows="1"></textarea>
+            <span class="char-count">0</span>
+          </div>
+          <div class="line-group" data-line="3">
+            <label>3行目</label>
+            <textarea class="tanka-line" rows="1"></textarea>
+            <span class="char-count">0</span>
+          </div>
+          <div class="line-group" data-line="4">
+            <label>4行目</label>
+            <textarea class="tanka-line" rows="1"></textarea>
+            <span class="char-count">0</span>
+          </div>
+          <div class="line-group" data-line="5">
+            <label>5行目</label>
+            <textarea class="tanka-line" rows="1"></textarea>
+            <span class="char-count">0</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="tags">タグ (カンマ区切り)</label>
+          <input type="text" id="tags" placeholder="季節,恋愛,自然">
+        </div>
+        <div class="field">
+          <label for="category">カテゴリー/ノート</label>
+          <input type="text" id="category" placeholder="日記や作品集名">
+        </div>
+        <div class="field">
+          <label for="series-select">連作を選択</label>
+          <select id="series-select">
+            <option value="">-- 連作なし --</option>
+          </select>
+          <button type="button" id="add-series-btn">新規連作</button>
+        </div>
+        <div id="new-series-form" class="hidden">
+          <input type="text" id="new-series-name" placeholder="連作名">
+          <input type="number" id="new-series-plan" placeholder="予定数" min="1" step="1">
+          <button type="button" id="create-series">作成</button>
+        </div>
+        <div class="field">
+          <label for="memo">メモ・推敲</label>
+          <textarea id="memo" rows="3" placeholder="推敲やメモを記入"></textarea>
+        </div>
+        <div class="buttons">
+          <button type="submit">保存</button>
+          <button type="button" id="reset-form">リセット</button>
+        </div>
+      </form>
+    </section>
+    <!-- List section -->
+    <section id="list-section" class="section">
+      <h2>作品一覧</h2>
+      <div class="search-filter">
+        <input type="text" id="search-key" placeholder="キーワード検索">
+        <input type="text" id="filter-tag" placeholder="タグで絞り込み">
+        <input type="text" id="filter-category" placeholder="カテゴリーで絞り込み">
+        <select id="filter-status">
+          <option value="">公開状況</option>
+          <option value="unpublished">未公開</option>
+          <option value="published">公開済み</option>
+        </select>
+        <button type="button" id="filter-btn">検索</button>
+        <button type="button" id="export-btn">CSV出力</button>
+        <input type="file" id="import-file" accept=".csv">
+        <label for="import-file" id="import-label">CSV読み込み</label>
+      </div>
+      <div id="card-container"></div>
+      <table id="tanka-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>作品(1行目)</th>
+            <th>タグ</th>
+            <th>カテゴリー</th>
+            <th>連作</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+    <!-- Calendar section -->
+    <section id="calendar-section" class="section">
+      <h2>カレンダー</h2>
+      <div id="calendar"></div>
+    </section>
+    <!-- Series section -->
+    <section id="series-section" class="section">
+      <h2>連作管理</h2>
+      <div id="series-list"></div>
+      <!-- デッキ編集モーダル -->
+      <div id="deck-builder" class="hidden">
+        <div class="deck-content">
+          <h3>デッキ編集</h3>
+          <div id="deck-entry-list"></div>
+          <div class="deck-buttons">
+            <button type="button" id="deck-save-btn">保存</button>
+            <button type="button" id="deck-cancel-btn">キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Preview section -->
+    <section id="preview-section" class="section">
+      <h2>縦書きプレビュー</h2>
+      <div class="preview-controls">
+        <label>フォント:
+          <select id="font-select">
+            <option value="\"Noto Serif JP\", serif">Noto Serif JP</option>
+            <option value="\"Sawarabi Mincho\", serif">Sawarabi Mincho</option>
+            <option value="\"Arial\", sans-serif">Arial</option>
+          </select>
+        </label>
+        <label>文字色:
+          <input type="color" id="color-select" value="#333333">
+        </label>
+        <label>背景:
+          <select id="background-select">
+            <option value="beige">ベージュ</option>
+            <option value="paper">和紙風</option>
+            <option value="white">白</option>
+          </select>
+        </label>
+        <button type="button" id="generate-image">画像保存</button>
+      </div>
+      <div id="preview-container">
+        <div id="preview-area"></div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 短歌帳アプリ</p>
+  </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
