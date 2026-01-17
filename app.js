@@ -613,46 +613,188 @@ function handleImport(event) {
   reader.readAsText(file);
 }
 
-function importCSV(text) {
+/**
+ * CSVを安全にパースするユーティリティ関数。
+ *
+ * 引用符に囲まれた値にカンマや改行が含まれていても正しく分割します。
+ * 2連続の引用符 "" はエスケープされた1文字の引用符として扱います。
+ *
+ * @param {string} text CSV形式の文字列
+ * @returns {string[][]} 行ごとのセル配列
+ */
+function parseCSV(text) {
+  const rows = [];
+  let current = '';
   const lines = text.split(/\r?\n/);
-  // Remove header
-  if (lines.length <= 1) return;
-  const header = lines[0].split(',');
-  for (let i = 1; i < lines.length; i++) {
-    const row = lines[i];
-    if (!row.trim()) continue;
-    const cols = row.split(',');
-    // Map fields
-    const id = cols[0];
-    const date = cols[1];
-    const linesArr = cols.slice(2, 7);
-    const tagsStr = cols[7] || '';
-    const category = cols[8] || '';
-    const seriesId = cols[9] || '';
-    const memo = cols[10] || '';
-    const status = cols[11] || 'unpublished';
-    // Avoid duplicate id
-    if (tankaEntries.find(e => e.id === id)) continue;
-    const entry = {
-      id,
-      date,
-      lines: linesArr,
-      tags: tagsStr ? tagsStr.split(';').map(t => t.trim()).filter(t => t) : [],
-      category,
-      seriesId,
-      memo,
-      status
-    };
-    tankaEntries.push(entry);
-    // Add to series list if necessary
-    if (seriesId) {
-      let series = seriesList.find(s => s.id === seriesId);
-      if (!series) {
-        // Create placeholder series if not exist
-        series = { id: seriesId, name: seriesId, planCount: 0, entries: [] };
-        seriesList.push(series);
+  for (const line of lines) {
+    if (current) {
+      current += '\n' + line;
+    } else {
+      current = line;
+    }
+    const quoteCount = (current.match(/"/g) || []).length;
+    if (quoteCount % 2 === 0) {
+      rows.push(current);
+      current = '';
+    }
+  }
+  if (current) rows.push(current);
+  return rows.map(row => {
+    const cells = [];
+    let cell = '';
+    let insideQuote = false;
+    for (let i = 0; i < row.length; i++) {
+      const ch = row[i];
+      if (ch === '"') {
+        if (insideQuote && row[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          insideQuote = !insideQuote;
+        }
+      } else if (ch === ',' && !insideQuote) {
+        cells.push(cell);
+        cell = '';
+      } else {
+        cell += ch;
       }
-      series.entries.push(id);
+    }
+    cells.push(cell);
+    return cells;
+  });
+}
+
+function importCSV(text) {
+  const rows = parseCSV(text);
+  if (!rows || rows.length <= 1) return;
+  const header = rows[0];
+  // 57577アプリの短歌ファイル
+  if (header[0] === '短歌' && header.includes('メモ')) {
+    const nowPrefix = Date.now().toString();
+    for (let i = 1; i < rows.length; i++) {
+      const cols = rows[i];
+      if (!cols || cols.length === 0 || cols.every(c => c === '')) continue;
+      const poem = cols[0] || '';
+      const memo = cols[1] || '';
+      const labels = cols[2] || '';
+      const created = cols[3] || '';
+      const updated = cols[4] || '';
+      const completed = cols[5] || '';
+      const id = 'import-' + nowPrefix + '-' + i;
+      let date = created || updated || '';
+      if (date) {
+        const m = date.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+        if (m) {
+          const y = m[1];
+          const month = m[2].padStart(2, '0');
+          const day = m[3].padStart(2, '0');
+          date = `${y}-${month}-${day}`;
+        }
+      }
+      const lineArr = poem.split(/\r?\n/);
+      while (lineArr.length < 5) {
+        lineArr.push('');
+      }
+      const tags = [];
+      if (labels) {
+        labels.split(/[,;\s、]+/).forEach(t => {
+          const trimmed = t.trim();
+          if (trimmed) tags.push(trimmed);
+        });
+      }
+      const status = completed && completed.trim() && completed.trim() !== '(未完成)' ? 'published' : 'unpublished';
+      if (tankaEntries.find(e => e.id === id)) continue;
+      const entry = {
+        id,
+        date,
+        lines: lineArr.slice(0, 5),
+        tags,
+        category: '',
+        seriesId: '',
+        memo,
+        status
+      };
+      tankaEntries.push(entry);
+    }
+  } else if (header[0] === '連作名' && header.includes('説明')) {
+    // 57577アプリの連作ファイル
+    const nowPrefix = Date.now().toString();
+    for (let i = 1; i < rows.length; i++) {
+      const cols = rows[i];
+      if (!cols || cols.length === 0 || cols.every(c => c === '')) continue;
+      const seriesName = cols[0] || '';
+      const created = cols[2] || '';
+      const updated = cols[3] || '';
+      const seriesId = 'series-' + nowPrefix + '-' + i;
+      const series = { id: seriesId, name: seriesName || seriesId, planCount: 0, entries: [] };
+      for (let j = 4; j < cols.length; j++) {
+        const poemCell = cols[j];
+        if (poemCell && poemCell.trim()) {
+          const entryId = 'import-' + seriesId + '-' + (j - 3);
+          let date = created || updated || '';
+          // 連作CSVの作成日・更新日はYYYY-MM-DD形式
+          if (date) {
+            const m = date.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+            if (m) {
+              const y = m[1];
+              const month = m[2].padStart(2, '0');
+              const day = m[3].padStart(2, '0');
+              date = `${y}-${month}-${day}`;
+            }
+          }
+          const lineArr = poemCell.split(/\r?\n/);
+          while (lineArr.length < 5) {
+            lineArr.push('');
+          }
+          const entry = {
+            id: entryId,
+            date,
+            lines: lineArr.slice(0, 5),
+            tags: [],
+            category: '',
+            seriesId,
+            memo: '',
+            status: 'unpublished'
+          };
+          tankaEntries.push(entry);
+          series.entries.push(entryId);
+        }
+      }
+      seriesList.push(series);
+    }
+  } else {
+    // 当アプリ独自フォーマット
+    for (let i = 1; i < rows.length; i++) {
+      const cols = rows[i];
+      if (!cols || cols.length === 0 || cols.every(c => c === '')) continue;
+      const id = cols[0];
+      const date = cols[1];
+      const linesArr = cols.slice(2, 7);
+      const tagsStr = cols[7] || '';
+      const category = cols[8] || '';
+      const seriesId = cols[9] || '';
+      const memo = cols[10] || '';
+      const status = cols[11] || 'unpublished';
+      if (tankaEntries.find(e => e.id === id)) continue;
+      const entry = {
+        id,
+        date,
+        lines: linesArr,
+        tags: tagsStr ? tagsStr.split(';').map(t => t.trim()).filter(t => t) : [],
+        category,
+        seriesId,
+        memo,
+        status
+      };
+      tankaEntries.push(entry);
+      if (seriesId) {
+        let series = seriesList.find(s => s.id === seriesId);
+        if (!series) {
+          series = { id: seriesId, name: seriesId, planCount: 0, entries: [] };
+          seriesList.push(series);
+        }
+        series.entries.push(id);
+      }
     }
   }
   saveData();
