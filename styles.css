@@ -133,7 +133,8 @@ main {
 }
 
 .hidden {
-  display: none;
+  /* 強制的に非表示にするため !important を付加し、id セレクタより高くする */
+  display: none !important;
 }
 
 /* List section */
@@ -195,10 +196,18 @@ main {
   padding-bottom: 0.5rem;
 }
 
+/*
+ * 一覧に表示するカードは縦書きの短歌を余すことなく表示できるよう、
+ * 本文領域を縦長に確保し、縦書きの行が折り返さないようにする。
+ */
 .card {
   flex: 0 0 auto;
-  min-width: 200px;
-  max-width: 200px;
+  /* トレーディングカードのような縦横比に近付けるためサイズを調整 */
+  min-width: 180px;
+  max-width: 180px;
+  /* 高さは短歌1行を書き並べたときに収まる程度に抑える */
+  min-height: 240px;
+  max-height: 240px;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -208,26 +217,35 @@ main {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  /* カード内のコンテンツがはみ出さないようにする */
+  overflow: hidden;
 }
 .card:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
-.card h4 {
-  margin: 0;
+/* Vertical poem inside card */
+.card-poem {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  /* プレビューと同様に大きめの行間を指定 */
+  line-height: 1.8rem;
   font-size: 1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: pre-line;
+  /* コンテンツをすべて表示するため overflow は可視 */
+  overflow: visible;
+  /* カード内で縦書きテキストを中央に配置する */
+  margin-left: auto;
+  margin-right: auto;
+  display: inline-block;
 }
-.card .date {
+/* Info section inside card */
+.card-info {
+  margin-top: 0.4rem;
   font-size: 0.8rem;
   color: #91785d;
-  margin-top: 0.2rem;
-}
-.card .tags {
-  font-size: 0.7rem;
-  color: #91785d;
-  margin-top: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
 /* Deck builder modal */
@@ -247,8 +265,10 @@ main {
   background-color: #fff;
   padding: 1rem;
   border-radius: 8px;
-  max-height: 80vh;
-  overflow-y: auto;
+  /* モーダル内を縦にレイアウトし、下部にボタンを固定する */
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
   width: 80%;
   max-width: 600px;
 }
@@ -257,6 +277,9 @@ main {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  /* 一覧部分をスクロール可能にして全体の高さを満たす */
+  overflow-y: auto;
+  flex-grow: 1;
 }
 .deck-card {
   width: 120px;

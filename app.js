@@ -18,8 +18,8 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const sections = document.querySelectorAll('.section');
 
 const tankaForm = document.getElementById('tanka-form');
-const lineInputs = document.querySelectorAll('.tanka-line');
-const charCounts = document.querySelectorAll('.char-count');
+// 短歌入力テキストエリア（5行まとめて）
+const tankaText = document.getElementById('tanka-text');
 const tagsInput = document.getElementById('tags');
 const categoryInput = document.getElementById('category');
 const seriesSelect = document.getElementById('series-select');
@@ -68,7 +68,6 @@ function init() {
   loadData();
   updateSeriesSelect();
   renderList();
-  renderCalendar();
   renderSeriesList();
   attachEventListeners();
 }
@@ -124,19 +123,13 @@ function attachEventListeners() {
           sec.classList.remove('active-section');
         }
       });
-      // re-render when switching to calendar or series or list
+      // セクション切替時の再描画
       if (target === 'list-section') renderList();
-      if (target === 'calendar-section') renderCalendar();
       if (target === 'series-section') renderSeriesList();
     });
   });
 
-  // 文字数カウント
-  lineInputs.forEach((textarea, index) => {
-    textarea.addEventListener('input', () => {
-      charCounts[index].textContent = getCharLength(textarea.value);
-    });
-  });
+  // 文字数カウント: 5行入力を1つのテキストエリアに変更したため不要
 
   // 連作追加ボタン
   addSeriesBtn.addEventListener('click', () => {
@@ -203,12 +196,17 @@ function getCharLength(str) {
  * フォーム送信時の処理
  */
 function handleFormSubmission() {
-  // collect lines
-  const lines = Array.from(lineInputs).map(t => t.value.trim());
+  // collect lines from single textarea
+  const rawLines = tankaText.value.split(/\r?\n/).map(l => l.trim());
   // ignore empty entry
-  if (lines.every(line => line === '')) {
+  if (rawLines.every(line => line === '')) {
     alert('少なくとも一行は入力してください');
     return;
+  }
+  // Ensure at least 5 lines by padding with空文字
+  const lines = rawLines.slice(0, 5);
+  while (lines.length < 5) {
+    lines.push('');
   }
   const tags = tagsInput.value.split(',').map(t => t.trim()).filter(t => t);
   const category = categoryInput.value.trim();
@@ -263,7 +261,7 @@ function handleFormSubmission() {
   }
   saveData();
   renderList();
-  renderCalendar();
+  // カレンダー機能は削除したため再描画不要
   renderSeriesList();
   // プレビューを更新
   currentPreview = entry;
@@ -279,10 +277,8 @@ function handleFormSubmission() {
  * フォームを初期状態に戻す
  */
 function resetForm() {
-  lineInputs.forEach((textarea, index) => {
-    textarea.value = '';
-    charCounts[index].textContent = '0';
-  });
+  // 5行一括入力に対応: テキストエリアをクリア
+  if (tankaText) tankaText.value = '';
   tagsInput.value = '';
   categoryInput.value = '';
   seriesSelect.value = '';
@@ -342,21 +338,28 @@ function renderList() {
     });
     tankaTableBody.appendChild(tr);
 
-    // create card
+    // create card with full poem displayed vertically
     const card = document.createElement('div');
     card.classList.add('card');
     card.dataset.id = entry.id;
-    const title = document.createElement('h4');
-    title.textContent = entry.lines[0] || '(無題)';
+    // poem container with vertical writing
+    const poemDiv = document.createElement('div');
+    poemDiv.classList.add('card-poem');
+    // Escape HTML and join lines with <br>
+    poemDiv.innerHTML = entry.lines.map(l => escapeHTML(l)).join('<br>');
+    card.appendChild(poemDiv);
+    // info container for date and tags (horizontal)
+    const infoDiv = document.createElement('div');
+    infoDiv.classList.add('card-info');
     const dateEl = document.createElement('div');
     dateEl.classList.add('date');
     dateEl.textContent = formatDate(entry.date);
+    infoDiv.appendChild(dateEl);
     const tagsEl = document.createElement('div');
     tagsEl.classList.add('tags');
     tagsEl.textContent = entry.tags.join(', ');
-    card.appendChild(title);
-    card.appendChild(dateEl);
-    card.appendChild(tagsEl);
+    infoDiv.appendChild(tagsEl);
+    card.appendChild(infoDiv);
     card.addEventListener('click', () => {
       editEntry(entry);
     });
@@ -376,6 +379,8 @@ function formatDate(isoString) {
  * カレンダーを描画
  */
 function renderCalendar() {
+  // カレンダーセクションが削除されている場合は何もしない
+  if (!calendarContainer) return;
   calendarContainer.innerHTML = '';
   const now = new Date();
   const year = now.getFullYear();
@@ -421,6 +426,14 @@ function renderCalendar() {
  */
 function renderSeriesList() {
   seriesListContainer.innerHTML = '';
+  // シリーズリストを再描画する際にデッキ編集モーダルを強制的に閉じる
+  // 過去に開いていた場合、ページ遷移後も表示されたままとなるバグを防ぐ
+  if (deckBuilder) {
+    // 編集モーダルを閉じる
+    deckBuilder.classList.add('hidden');
+    deckBuilder.style.display = 'none';
+  }
+  currentSeriesEditing = null;
   seriesList.forEach(series => {
     const item = document.createElement('div');
     item.classList.add('series-item');
@@ -451,11 +464,10 @@ function renderSeriesList() {
  */
 function editEntry(entry) {
   editingEntryId = entry.id;
-  // 設定
-  lineInputs.forEach((textarea, index) => {
-    textarea.value = entry.lines[index] || '';
-    charCounts[index].textContent = getCharLength(textarea.value);
-  });
+  // 設定：短歌テキストエリアに行をまとめてセット
+  if (tankaText) {
+    tankaText.value = entry.lines.join('\n');
+  }
   tagsInput.value = entry.tags.join(', ');
   categoryInput.value = entry.category || '';
   seriesSelect.value = entry.seriesId || '';
@@ -495,7 +507,9 @@ function openDeckBuilder(seriesId) {
     });
     deckEntryList.appendChild(card);
   });
+  // モーダルを表示
   deckBuilder.classList.remove('hidden');
+  deckBuilder.style.display = 'flex';
 }
 
 // デッキ保存ボタン
@@ -510,15 +524,54 @@ deckSaveBtn.addEventListener('click', () => {
   series.entries = selectedIds;
   saveData();
   renderSeriesList();
+  // モーダルを閉じる
   deckBuilder.classList.add('hidden');
+  deckBuilder.style.display = 'none';
   currentSeriesEditing = null;
 });
 
 // デッキキャンセルボタン
 deckCancelBtn.addEventListener('click', () => {
+  // モーダルを閉じる
   deckBuilder.classList.add('hidden');
+  deckBuilder.style.display = 'none';
   currentSeriesEditing = null;
+  // シリーズリストを再描画してイベントリスナーをリセット
+  renderSeriesList();
 });
+
+/**
+ * デッキ編集の保存処理。onclick から呼び出せるようにグローバル関数として定義。
+ */
+function saveDeck() {
+  if (!currentSeriesEditing) return;
+  const series = seriesList.find(s => s.id === currentSeriesEditing);
+  if (!series) return;
+  const selectedIds = [];
+  deckEntryList.querySelectorAll('.deck-card.selected').forEach(card => {
+    selectedIds.push(card.dataset.id);
+  });
+  series.entries = selectedIds;
+  saveData();
+  renderSeriesList();
+  deckBuilder.classList.add('hidden');
+  deckBuilder.style.display = 'none';
+  currentSeriesEditing = null;
+}
+
+/**
+ * デッキ編集のキャンセル処理。onclick から呼び出せるようにグローバル関数として定義。
+ */
+function cancelDeck() {
+  deckBuilder.classList.add('hidden');
+  deckBuilder.style.display = 'none';
+  currentSeriesEditing = null;
+  renderSeriesList();
+}
+
+// グローバルに公開
+window.saveDeck = saveDeck;
+window.cancelDeck = cancelDeck;
 
 /**
  * プレビューエリアを更新
@@ -799,7 +852,7 @@ function importCSV(text) {
   }
   saveData();
   renderList();
-  renderCalendar();
+  // カレンダー機能は不要のため再描画せず
   renderSeriesList();
   alert('CSV読み込みが完了しました');
 }

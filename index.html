@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles.css">
   <!-- Google Fonts for Japanese typography -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Sawarabi+Mincho&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
@@ -15,7 +15,7 @@
     <nav>
       <button id="nav-input" class="nav-btn active">入力</button>
       <button id="nav-list" class="nav-btn">一覧</button>
-      <button id="nav-calendar" class="nav-btn">カレンダー</button>
+      <!-- カレンダー機能は削除 -->
       <button id="nav-series" class="nav-btn">連作</button>
       <button id="nav-preview" class="nav-btn">プレビュー</button>
     </nav>
@@ -25,33 +25,10 @@
     <section id="input-section" class="section active-section">
       <h2>作品入力</h2>
       <form id="tanka-form">
-        <div class="line-inputs">
-          <!-- Five lines for 5-7-5-7-7 structure -->
-          <div class="line-group" data-line="1">
-            <label>1行目</label>
-            <textarea class="tanka-line" rows="1"></textarea>
-            <span class="char-count">0</span>
-          </div>
-          <div class="line-group" data-line="2">
-            <label>2行目</label>
-            <textarea class="tanka-line" rows="1"></textarea>
-            <span class="char-count">0</span>
-          </div>
-          <div class="line-group" data-line="3">
-            <label>3行目</label>
-            <textarea class="tanka-line" rows="1"></textarea>
-            <span class="char-count">0</span>
-          </div>
-          <div class="line-group" data-line="4">
-            <label>4行目</label>
-            <textarea class="tanka-line" rows="1"></textarea>
-            <span class="char-count">0</span>
-          </div>
-          <div class="line-group" data-line="5">
-            <label>5行目</label>
-            <textarea class="tanka-line" rows="1"></textarea>
-            <span class="char-count">0</span>
-          </div>
+        <!-- 短歌入力を1つのテキストエリアに統合 -->
+        <div class="field">
+          <label for="tanka-text">短歌</label>
+          <textarea id="tanka-text" rows="5" placeholder="短歌をここに入力 (改行で行分け)"></textarea>
         </div>
         <div class="field">
           <label for="tags">タグ (カンマ区切り)</label>
@@ -114,23 +91,21 @@
         <tbody></tbody>
       </table>
     </section>
-    <!-- Calendar section -->
-    <section id="calendar-section" class="section">
-      <h2>カレンダー</h2>
-      <div id="calendar"></div>
-    </section>
+    <!-- カレンダーセクションは不要なため削除 -->
     <!-- Series section -->
     <section id="series-section" class="section">
       <h2>連作管理</h2>
       <div id="series-list"></div>
       <!-- デッキ編集モーダル -->
-      <div id="deck-builder" class="hidden">
+      <!-- デッキ編集モーダル。初期状態では非表示にするため style="display:none" を追加 -->
+      <div id="deck-builder" class="hidden" style="display: none;">
         <div class="deck-content">
           <h3>デッキ編集</h3>
           <div id="deck-entry-list"></div>
           <div class="deck-buttons">
-            <button type="button" id="deck-save-btn">保存</button>
-            <button type="button" id="deck-cancel-btn">キャンセル</button>
+            <!-- onclick ハンドラで保存・キャンセル処理を呼び出す -->
+            <button type="button" id="deck-save-btn" onclick="saveDeck()">保存</button>
+            <button type="button" id="deck-cancel-btn" onclick="cancelDeck()">キャンセル</button>
           </div>
         </div>
       </div>
@@ -141,9 +116,8 @@
       <div class="preview-controls">
         <label>フォント:
           <select id="font-select">
-            <option value="\"Noto Serif JP\", serif">Noto Serif JP</option>
-            <option value="\"Sawarabi Mincho\", serif">Sawarabi Mincho</option>
-            <option value="\"Arial\", sans-serif">Arial</option>
+            <option value="\"Sawarabi Mincho\", serif">明朝体</option>
+            <option value="\"Noto Sans JP\", sans-serif">ゴシック体</option>
           </select>
         </label>
         <label>文字色:
